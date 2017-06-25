@@ -1,6 +1,7 @@
 defmodule CertCache do
   @moduledoc """
   A certificate cache.
+
   NOTE: Currently, certificates must be stored on disk in PEM format.
   """
 
@@ -25,12 +26,16 @@ defmodule CertCache do
   certfile/cacertfile/keyfile options.
 
   ex: (hackney)
-    mycert = CertCache.get_cert("cert.pem")
-    :hackney.get(url, ssl_options: [ cacerts: [ mycert ] ])
+  ```
+  mycert = CertCache.get_cert("cert.pem")
+  :hackney.get(url, ssl_options: [ cacerts: [ mycert ] ])
+  ```
 
   ex: (HTTPoison)
-    mycert = CertCache.get_cert("cert.pem")
-    HTTPoison.get(url, ssl: [ cacerts: [ mycert ] ])
+  ```
+  mycert = CertCache.get_cert("cert.pem")
+  HTTPoison.get(url, ssl: [ cacerts: [ mycert ] ])
+  ```
   """
   def get_cert(filename, cached \\ true) do
     if not cached do
