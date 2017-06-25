@@ -1,6 +1,6 @@
 # CertCache
 
-TODO
+ A certificate cache for Elixir / Pheonix.
 
 ## Installation
 
