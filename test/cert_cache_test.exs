@@ -1,7 +1,7 @@
 defmodule CertCacheTest do
   use ExUnit.Case
   doctest CertCache
-  @fixtures_path "./test/fixtures"
+  @fixtures_path "test/fixtures"
 
   setup do
     CertCache.start_link(@fixtures_path)

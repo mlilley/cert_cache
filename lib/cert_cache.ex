@@ -1,15 +1,11 @@
 defmodule CertCache do
   @moduledoc """
-  A certificate cache.
-
-  NOTE: Currently, certificates must be stored on disk in PEM format.
+  A cache for certificates for use with Phoenix, hackney, HTTPoison, etc.
   """
 
+  alias CertCache.FileProvider
   @name __MODULE__
-  alias CertCache.FileCertProvider
 
-  @doc """
-  """
   def start_link(base_dir) do
     initial_state = {base_dir, Map.new}
     Agent.start_link(fn -> initial_state end, name: @name)
@@ -54,7 +50,7 @@ defmodule CertCache do
 
   defp load_cert_from_provider(filename) do
     base_path = Agent.get(@name, fn state -> Kernel.elem(state, 0) end)
-    cert = FileCertProvider.load_cert(filename, base_path)
+    cert = FileProvider.load_cert(filename, base_path)
     Agent.update(@name, fn state -> {
       base_path, Map.put(Kernel.elem(state, 1), filename, cert)
     } end)

@@ -1,9 +1,9 @@
-defmodule CertCache.FileCertProvider do
+defmodule CertCache.FileProvider do
   @moduledoc """
   Loads certs from the filesystem.
   """
 
-  @behaviour CertCache.CertProvider
+  @behaviour CertCache.Provider
 
   def load_cert(filename, base_path) do
     base_path
