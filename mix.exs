@@ -15,13 +15,17 @@ defmodule CertCache.Mixfile do
   end
 
   def application do
-    [extra_applications: [ :logger ]]
+    [
+      # mod: {CertCache.Application, []},
+      extra_applications: [ :logger ]
+    ]
   end
 
   defp deps do
     [
       {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev}
+      {:stubr, "~> 1.5.0", only: :test, runtime: false},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 

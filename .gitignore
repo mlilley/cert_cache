@@ -23,3 +23,5 @@ erl_crash.dump
 *.DS_Store
 ._*
 
+# Erlang crash logs
+/log

@@ -1,59 +1,55 @@
 defmodule CertCache do
+  @name __MODULE__
+  @provider CertCache.FileProvider
+
   @moduledoc """
-  A cache for certificates for use with Phoenix, hackney, HTTPoison, etc.
+  In-memory cache for certificates.
   """
 
-  alias CertCache.FileProvider
-  @name __MODULE__
-
-  def start_link(base_dir) do
-    initial_state = {base_dir, Map.new}
-    Agent.start_link(fn -> initial_state end, name: @name)
+  def start_link(opts \\ []) do
+    IO.puts "CertCache.start_link() #{inspect(opts)}"
+    opts = Keyword.put_new(opts, :name, @name)
+    Agent.start_link(fn -> %{} end, name: opts[:name])
   end
 
   @doc """
-  Certs are loaded from disk on first get, and from cache then after, unless
-  false is passed for the cached param.
-
-  Raises File.Error if requested cert file is not found.
-
-  Certs are returned in DER format. Pass them directly to erlang ssl via the
-  cert/cacerts/key options instead of passing filenames via the
-  certfile/cacertfile/keyfile options.
-
-  ex: (hackney)
-  ```
-  mycert = CertCache.get_cert("cert.pem")
-  :hackney.get(url, ssl_options: [ cacerts: [ mycert ] ])
-  ```
-
-  ex: (HTTPoison)
-  ```
-  mycert = CertCache.get_cert("cert.pem")
-  HTTPoison.get(url, ssl: [ cacerts: [ mycert ] ])
-  ```
+  Returns cert from cache (if previous got), otherwise loads it from filesystem.
+  Certs are returned in DER format.  If cert does not exist, File.Error is
+  raised.
   """
-  def get_cert(filename, cached \\ true) do
-    if not cached do
-      load_cert_from_provider(filename)
-    else
-      case find_cert_in_cache(filename) do
-        nil  -> load_cert_from_provider(filename)
-        cert -> cert
-      end
+  def get(filename, opts \\ []) do
+    opts = Keyword.put_new(opts, :name, @name)
+    opts = Keyword.put_new(opts, :provider, @provider)
+    case get_from_cache(opts[:name], filename) do
+      nil  -> fetch(filename, opts)
+      cert -> cert
     end
   end
 
-  defp find_cert_in_cache(filename) do
-    Agent.get(@name, fn state -> Map.get(Kernel.elem(state, 1), filename) end)
+  @doc """
+  Loads a cert from filesystem (regardless of whether its in the cache or not).
+  Cache is updated with the loaded cert.  If cert does not exist, File.Error is
+  raised.
+  """
+  def fetch(filename, opts \\ []) do
+    opts = Keyword.put_new(opts, :name, @name)
+    opts = Keyword.put_new(opts, :provider, @provider)
+    cert = get_from_system(opts[:provider], filename)
+    Agent.update(opts[:name], fn cache -> Map.put(cache, filename, cert) end)
+    cert
   end
 
-  defp load_cert_from_provider(filename) do
-    base_path = Agent.get(@name, fn state -> Kernel.elem(state, 0) end)
-    cert = FileProvider.load_cert(filename, base_path)
-    Agent.update(@name, fn state -> {
-      base_path, Map.put(Kernel.elem(state, 1), filename, cert)
-    } end)
-    cert
+  defp get_from_system(provider, filename) do
+    filename
+      |> provider.load
+      |> convert
+  end
+
+  defp get_from_cache(name, filename) do
+    Agent.get(name, fn cache -> Map.get(cache, filename) end)
+  end
+
+  defp convert(pem) do
+    :public_key.pem_decode(pem)
   end
 end
