@@ -9,7 +9,7 @@ defmodule CertCache.Mixfile do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps(),
-      description: "A certificate cache for Elixir / Pheonix",
+      description: "A certificate cache for Elixir / Phoenix",
       package: package()
     ]
   end
